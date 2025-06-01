@@ -76,17 +76,28 @@ unbanButton.UICorner = corner:Clone()
 
 -- Voice Chat Unban Functionality
 scriptReferences.connections.unbanClick = unbanButton.MouseButton1Click:Connect(function()
+    local vcService = game:GetService("VoiceChatService")
+    
+    -- First try the JoinVoice method
     local success, result = pcall(function()
-        return game:GetService("VoiceChatService"):RequestJoinForVoiceChatService()
+        return vcService:JoinVoice()
     end)
     
+    -- If that fails, try the newer method
     if not success then
-        warn("Voice chat join failed:", result)
-        unbanButton.Text = "Failed - Try Again"
+        success, result = pcall(function()
+            return vcService:RequestJoinForVoiceChatService()
+        end)
+    end
+    
+    -- Update button text based on result
+    if success then
+        unbanButton.Text = "Success!"
         task.wait(2)
         unbanButton.Text = "Unban VC"
     else
-        unbanButton.Text = "Success!"
+        warn("Voice chat join failed:", result)
+        unbanButton.Text = "Failed - Try Again"
         task.wait(2)
         unbanButton.Text = "Unban VC"
     end
@@ -124,8 +135,5 @@ scriptReferences.connections.closeClick = closeButton.MouseButton1Click:Connect(
         _G.UnbannerVC = nil
     end
 end)
-
--- Store in global table for external access if needed
-_G.UnbannerVC = scriptReferences
 
 warn("Unbanner VC GUI loaded successfully!")
